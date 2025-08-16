@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import PomodoroTimer from "@/components/PomodoroTimer";
 import DailyTracker from "@/components/DailyTracker";
 import CourseCuration from "@/components/CourseCuration";
+import YouTubeAnalytics from "@/components/YouTubeAnalytics";
 import { 
   Brain, 
   Target, 
@@ -21,7 +22,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
 
   const features = [
-    { icon: Youtube, title: "YouTube Analytics", desc: "Video stats & sentiment analysis", status: "coming-soon" },
+    { icon: Youtube, title: "YouTube Analytics", desc: "Video stats & sentiment analysis", status: "active" },
     { icon: BarChart3, title: "Video Comparison", desc: "Compare videos on quality & bias", status: "coming-soon" },
     { icon: BookOpen, title: "Course Curation", desc: "Free courses with certificates", status: "active" },
     { icon: Sparkles, title: "AI Tools", desc: "Personalized tool recommendations", status: "coming-soon" },
@@ -69,6 +70,7 @@ const Index = () => {
           <div className="flex gap-1 py-2">
             {[
               { id: "dashboard", label: "Dashboard", icon: BarChart3 },
+              { id: "youtube", label: "YouTube Analytics", icon: Youtube },
               { id: "timer", label: "Focus Timer", icon: Target },
               { id: "courses", label: "Courses", icon: BookOpen },
               { id: "community", label: "Community", icon: Users }
@@ -162,6 +164,16 @@ const Index = () => {
               <DailyTracker />
               <PomodoroTimer />
             </div>
+          </div>
+        )}
+
+        {activeTab === "youtube" && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-4">YouTube Video Analytics</h2>
+              <p className="text-muted-foreground">Analyze video stats, comments sentiment, and detect spam</p>
+            </div>
+            <YouTubeAnalytics />
           </div>
         )}
 
