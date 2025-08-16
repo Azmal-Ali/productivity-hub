@@ -6,6 +6,7 @@ import PomodoroTimer from "@/components/PomodoroTimer";
 import DailyTracker from "@/components/DailyTracker";
 import CourseCuration from "@/components/CourseCuration";
 import YouTubeAnalytics from "@/components/YouTubeAnalytics";
+import AIToolsRecommender from "@/components/AIToolsRecommender";
 import { 
   Brain, 
   Target, 
@@ -25,7 +26,7 @@ const Index = () => {
     { icon: Youtube, title: "YouTube Analytics", desc: "Video stats & sentiment analysis", status: "active" },
     { icon: BarChart3, title: "Video Comparison", desc: "Compare videos on quality & bias", status: "coming-soon" },
     { icon: BookOpen, title: "Course Curation", desc: "Free courses with certificates", status: "active" },
-    { icon: Sparkles, title: "AI Tools", desc: "Personalized tool recommendations", status: "coming-soon" },
+    { icon: Sparkles, title: "AI Tools", desc: "Personalized tool recommendations", status: "active" },
     { icon: Target, title: "Goals & Timer", desc: "Pomodoro & daily tracking", status: "active" },
     { icon: Users, title: "Community", desc: "Reddit-like discussions", status: "coming-soon" },
     { icon: Trophy, title: "Leaderboard", desc: "Compete with friends", status: "coming-soon" },
@@ -71,6 +72,7 @@ const Index = () => {
             {[
               { id: "dashboard", label: "Dashboard", icon: BarChart3 },
               { id: "youtube", label: "YouTube Analytics", icon: Youtube },
+              { id: "aitools", label: "AI Tools", icon: Sparkles },
               { id: "timer", label: "Focus Timer", icon: Target },
               { id: "courses", label: "Courses", icon: BookOpen },
               { id: "community", label: "Community", icon: Users }
@@ -174,6 +176,16 @@ const Index = () => {
               <p className="text-muted-foreground">Analyze video stats, comments sentiment, and detect spam</p>
             </div>
             <YouTubeAnalytics />
+          </div>
+        )}
+
+        {activeTab === "aitools" && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-4">AI Tools Recommender</h2>
+              <p className="text-muted-foreground">Discover the perfect AI tools for your goals and projects</p>
+            </div>
+            <AIToolsRecommender />
           </div>
         )}
 
