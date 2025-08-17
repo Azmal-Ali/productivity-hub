@@ -1,25 +1,83 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/components/ui/use-toast';
 import { ComparisonService, ComparisonResult } from '@/services/ComparisonService';
-import { GitCompare, ExternalLink, Trophy, TrendingUp, TrendingDown } from 'lucide-react';
+import { YouTubeService } from '@/services/YouTubeService';
+import { GitCompare, ExternalLink, Trophy, TrendingUp, TrendingDown, AlertCircle, Key } from 'lucide-react';
 
 export const VideoComparison = () => {
   const [url1, setUrl1] = useState('');
   const [url2, setUrl2] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<ComparisonResult | null>(null);
+  const [hasApiKey, setHasApiKey] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    const savedApiKey = YouTubeService.getApiKey();
+    setHasApiKey(!!savedApiKey);
+  }, []);
+
+  const handleSaveApiKey = () => {
+    if (!apiKey.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid API key",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    YouTubeService.saveApiKey(apiKey.trim());
+    setHasApiKey(true);
+    setShowApiKeyInput(false);
+    toast({
+      title: "Success",
+      description: "YouTube API key saved successfully",
+    });
+  };
+
   const handleCompare = async () => {
+    if (!hasApiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please set your YouTube API key first",
+        variant: "destructive",
+      });
+      setShowApiKeyInput(true);
+      return;
+    }
+
     if (!url1 || !url2) {
       toast({
         title: "Error", 
-        description: "Please enter both URLs to compare",
+        description: "Please enter both YouTube URLs to compare",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if URLs are YouTube URLs
+    if (!url1.includes('youtube.com') && !url1.includes('youtu.be')) {
+      toast({
+        title: "Error", 
+        description: "First URL must be a YouTube video",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!url2.includes('youtube.com') && !url2.includes('youtu.be')) {
+      toast({
+        title: "Error", 
+        description: "Second URL must be a YouTube video",
         variant: "destructive",
       });
       return;
@@ -31,12 +89,12 @@ export const VideoComparison = () => {
       setResult(comparisonResult);
       toast({
         title: "Comparison Complete",
-        description: "Content analysis finished successfully",
+        description: "Video analysis finished successfully",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to compare content. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to compare videos. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -51,21 +109,35 @@ export const VideoComparison = () => {
     return 'bg-red-500';
   };
 
-  const MetricDisplay = ({ label, value, isReversed = false }: { label: string; value: number; isReversed?: boolean }) => (
+  const MetricDisplay = ({ label, value, suffix = '', isPercentage = false }: { label: string; value: number; suffix?: string; isPercentage?: boolean }) => (
     <div className="space-y-2">
       <div className="flex justify-between text-sm">
         <span className="text-muted-foreground">{label}</span>
-        <span className="font-medium">{value}%</span>
+        <span className="font-medium">
+          {isPercentage ? `${value}%` : `${formatNumber(value)}${suffix}`}
+        </span>
       </div>
-      <Progress 
-        value={value} 
-        className="h-2"
-        style={{ 
-          '--progress-background': getMetricColor(value, isReversed) 
-        } as React.CSSProperties}
-      />
+      {isPercentage && (
+        <Progress 
+          value={Math.min(value * 10, 100)} 
+          className="h-2"
+          style={{ 
+            '--progress-background': getMetricColor(value * 10) 
+          } as React.CSSProperties}
+        />
+      )}
     </div>
   );
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+  };
 
   const ContentCard = ({ item, isWinner }: { item: ComparisonResult['item1']; isWinner: boolean }) => (
     <Card className={`p-6 space-y-4 relative ${isWinner ? 'ring-2 ring-primary shadow-lg' : ''}`}>
@@ -79,7 +151,7 @@ export const VideoComparison = () => {
       )}
       
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline">{item.contentType}</Badge>
           <a 
             href={item.url} 
@@ -91,17 +163,23 @@ export const VideoComparison = () => {
           </a>
         </div>
         <h3 className="font-semibold text-lg">{item.title}</h3>
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p>Channel: {item.channelTitle}</p>
+          <p>Published: {new Date(item.publishedAt).toLocaleDateString()}</p>
+          <p>Duration: {item.duration}</p>
+        </div>
         <p className="text-muted-foreground text-sm">{item.description}</p>
       </div>
 
       <div className="space-y-4">
-        <h4 className="font-medium text-sm">Metrics</h4>
+        <h4 className="font-medium text-sm">Performance Metrics</h4>
         <div className="space-y-3">
-          <MetricDisplay label="Quality" value={item.metrics.quality} />
-          <MetricDisplay label="Accuracy" value={item.metrics.accuracy} />
-          <MetricDisplay label="Clarity" value={item.metrics.clarity} />
-          <MetricDisplay label="Bias (lower is better)" value={item.metrics.bias} isReversed />
-          <MetricDisplay label="Recency" value={item.metrics.recency} />
+          <MetricDisplay label="Views" value={item.metrics.views} />
+          <MetricDisplay label="Likes" value={item.metrics.likes} />
+          <MetricDisplay label="Comments" value={item.metrics.comments} />
+          <MetricDisplay label="Engagement Rate" value={item.metrics.engagementRate} isPercentage />
+          <MetricDisplay label="Like Ratio" value={item.metrics.likesToViewsRatio} isPercentage />
+          <MetricDisplay label="Comment Ratio" value={item.metrics.commentsToViewsRatio} isPercentage />
         </div>
       </div>
 
@@ -142,44 +220,94 @@ export const VideoComparison = () => {
   return (
     <div className="p-6 space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold">Content Comparison</h2>
-        <p className="text-muted-foreground">Compare videos or websites for quality, accuracy, and reliability</p>
+        <h2 className="text-2xl font-bold">YouTube Video Comparison</h2>
+        <p className="text-muted-foreground">Compare YouTube videos based on views, likes, comments, and engagement</p>
       </div>
+
+      {!hasApiKey && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            YouTube API key required for video comparison. Please{' '}
+            <Button 
+              variant="link" 
+              className="p-0 h-auto font-medium text-primary"
+              onClick={() => setShowApiKeyInput(true)}
+            >
+              set your API key
+            </Button>{' '}
+            to continue.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {showApiKeyInput && (
+        <Card className="p-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Key className="w-5 h-5" />
+              <h3 className="text-lg font-semibold">YouTube API Key</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Enter your YouTube Data API v3 key to enable video comparison.{' '}
+              <a 
+                href="https://developers.google.com/youtube/v3/getting-started" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Get API key here
+              </a>
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="password"
+                placeholder="Enter YouTube API key"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="flex-1"
+              />
+              <Button onClick={handleSaveApiKey}>Save</Button>
+              <Button variant="outline" onClick={() => setShowApiKeyInput(false)}>Cancel</Button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <Card className="p-6">
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">First URL</label>
+              <label className="text-sm font-medium">First YouTube URL</label>
               <Input
-                placeholder="https://youtube.com/watch?v=... or any website URL"
+                placeholder="https://youtube.com/watch?v=..."
                 value={url1}
                 onChange={(e) => setUrl1(e.target.value)}
-                disabled={isLoading}
+                disabled={isLoading || !hasApiKey}
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Second URL</label>
+              <label className="text-sm font-medium">Second YouTube URL</label>
               <Input
-                placeholder="https://example.com/article or video URL"
+                placeholder="https://youtube.com/watch?v=..."
                 value={url2}
                 onChange={(e) => setUrl2(e.target.value)}
-                disabled={isLoading}
+                disabled={isLoading || !hasApiKey}
               />
             </div>
           </div>
           
           <Button 
             onClick={handleCompare}
-            disabled={isLoading || !url1 || !url2}
+            disabled={isLoading || !url1 || !url2 || !hasApiKey}
             className="w-full"
           >
             {isLoading ? (
-              <>Analyzing Content...</>
+              <>Analyzing Videos...</>
             ) : (
               <>
                 <GitCompare className="w-4 h-4 mr-2" />
-                Compare Content
+                Compare Videos
               </>
             )}
           </Button>
@@ -192,7 +320,7 @@ export const VideoComparison = () => {
             <div className="text-lg font-medium">Analyzing content...</div>
             <Progress value={50} className="w-full" />
             <p className="text-sm text-muted-foreground">
-              Evaluating quality, accuracy, clarity, bias, and recency
+              Analyzing views, likes, comments, and engagement rates
             </p>
           </div>
         </Card>
