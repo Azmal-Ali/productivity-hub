@@ -7,6 +7,7 @@ import DailyTracker from "@/components/DailyTracker";
 import CourseCuration from "@/components/CourseCuration";
 import YouTubeAnalytics from "@/components/YouTubeAnalytics";
 import AIToolsRecommender from "@/components/AIToolsRecommender";
+import { VideoComparison } from "@/components/VideoComparison";
 import { 
   Brain, 
   Target, 
@@ -16,7 +17,8 @@ import {
   MessageSquare,
   BarChart3,
   Youtube,
-  Sparkles
+  Sparkles,
+  GitCompare
 } from "lucide-react";
 
 const Index = () => {
@@ -24,7 +26,7 @@ const Index = () => {
 
   const features = [
     { icon: Youtube, title: "YouTube Analytics", desc: "Video stats & sentiment analysis", status: "active" },
-    { icon: BarChart3, title: "Video Comparison", desc: "Compare videos on quality & bias", status: "coming-soon" },
+    { icon: GitCompare, title: "Video Comparison", desc: "Compare videos on quality & bias", status: "active" },
     { icon: BookOpen, title: "Course Curation", desc: "Free courses with certificates", status: "active" },
     { icon: Sparkles, title: "AI Tools", desc: "Personalized tool recommendations", status: "active" },
     { icon: Target, title: "Goals & Timer", desc: "Pomodoro & daily tracking", status: "active" },
@@ -72,6 +74,7 @@ const Index = () => {
             {[
               { id: "dashboard", label: "Dashboard", icon: BarChart3 },
               { id: "youtube", label: "YouTube Analytics", icon: Youtube },
+              { id: "comparison", label: "Video Compare", icon: GitCompare },
               { id: "aitools", label: "AI Tools", icon: Sparkles },
               { id: "timer", label: "Focus Timer", icon: Target },
               { id: "courses", label: "Courses", icon: BookOpen },
@@ -176,6 +179,12 @@ const Index = () => {
               <p className="text-muted-foreground">Analyze video stats, comments sentiment, and detect spam</p>
             </div>
             <YouTubeAnalytics />
+          </div>
+        )}
+
+        {activeTab === "comparison" && (
+          <div className="space-y-6">
+            <VideoComparison />
           </div>
         )}
 
