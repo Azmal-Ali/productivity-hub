@@ -33,8 +33,8 @@ export interface ComparisonResult {
 export class ComparisonService {
   static async compareContent(url1: string, url2: string): Promise<ComparisonResult> {
     try {
-      // Import YouTubeService dynamically to avoid circular dependencies
-      const { YouTubeService } = await import('./YouTubeService');
+      // Import EnhancedYouTubeService dynamically to avoid circular dependencies
+      const { EnhancedYouTubeService } = await import('./EnhancedYouTubeService');
       
       const item1 = await this.analyzeVideoUrl(url1);
       const item2 = await this.analyzeVideoUrl(url2);
@@ -53,14 +53,14 @@ export class ComparisonService {
   }
 
   private static async analyzeVideoUrl(url: string): Promise<ComparisonItem> {
-    const { YouTubeService } = await import('./YouTubeService');
+    const { EnhancedYouTubeService } = await import('./EnhancedYouTubeService');
     
-    const videoId = YouTubeService.extractVideoId(url);
+    const videoId = EnhancedYouTubeService.extractVideoId(url);
     if (!videoId) {
       throw new Error('Invalid YouTube URL');
     }
 
-    const videoStats = await YouTubeService.getVideoStats(videoId);
+    const videoStats = await EnhancedYouTubeService.getVideoStats(videoId);
     if (!videoStats) {
       throw new Error('Failed to fetch video statistics');
     }

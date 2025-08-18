@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { YouTubeService } from "@/services/YouTubeService";
+import { EnhancedYouTubeService } from "@/services/EnhancedYouTubeService";
 import { 
   Youtube, 
   ThumbsUp, 
@@ -26,18 +26,20 @@ import { toast } from "sonner";
 
 const YouTubeAnalytics = () => {
   const [url, setUrl] = useState("");
-  const [apiKey, setApiKey] = useState(YouTubeService.getApiKey() || "");
+  const [apiKey, setApiKey] = useState(EnhancedYouTubeService.getApiKey() || "");
   const [isLoading, setIsLoading] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
-  const [showApiKeyInput, setShowApiKeyInput] = useState(!YouTubeService.getApiKey());
+  const [showApiKeyInput, setShowApiKeyInput] = useState(!EnhancedYouTubeService.getApiKey());
+  const [error, setError] = useState<string | null>(null);
 
   const handleApiKeySave = () => {
     if (!apiKey.trim()) {
       toast.error("Please enter a valid API key");
       return;
     }
-    YouTubeService.saveApiKey(apiKey.trim());
+    EnhancedYouTubeService.saveApiKey(apiKey.trim());
     setShowApiKeyInput(false);
+    setError(null);
     toast.success("API key saved successfully!");
   };
 
@@ -47,20 +49,23 @@ const YouTubeAnalytics = () => {
       return;
     }
 
-    if (!YouTubeService.getApiKey()) {
+    if (!EnhancedYouTubeService.getApiKey()) {
       toast.error("Please set your YouTube API key first");
       setShowApiKeyInput(true);
       return;
     }
 
     setIsLoading(true);
+    setError(null);
     try {
-      const result = await YouTubeService.analyzeVideo(url);
+      const result = await EnhancedYouTubeService.analyzeVideo(url);
       setAnalytics(result);
       toast.success("Video analyzed successfully!");
     } catch (error) {
       console.error("Analysis error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to analyze video");
+      const errorMessage = error instanceof Error ? error.message : "Failed to analyze video";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -108,7 +113,16 @@ const YouTubeAnalytics = () => {
         <Alert>
           <Key className="w-4 h-4" />
           <AlertDescription className="space-y-4">
-            <p>You need a YouTube Data API key to use this feature. Get one from the Google Cloud Console.</p>
+            <div>
+              <p className="font-medium mb-2">YouTube Data API v3 Setup Required</p>
+              <ol className="text-sm space-y-1 mb-4">
+                <li>1. Go to <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google Cloud Console</a></li>
+                <li>2. Create a project or select existing one</li>
+                <li>3. Enable YouTube Data API v3</li>
+                <li>4. Create credentials (API key)</li>
+                <li>5. Enter your API key below</li>
+              </ol>
+            </div>
             <div className="flex gap-2">
               <Input
                 type="password"
@@ -145,7 +159,7 @@ const YouTubeAnalytics = () => {
             </Button>
           </div>
           
-          {!YouTubeService.getApiKey() && (
+          {!EnhancedYouTubeService.getApiKey() && (
             <Button 
               variant="outline" 
               size="sm" 
@@ -158,6 +172,16 @@ const YouTubeAnalytics = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Error Display */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertTriangle className="w-4 h-4" />
+          <AlertDescription className="whitespace-pre-line">
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Loading */}
       {isLoading && (

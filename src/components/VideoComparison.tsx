@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/components/ui/use-toast';
 import { ComparisonService, ComparisonResult } from '@/services/ComparisonService';
-import { YouTubeService } from '@/services/YouTubeService';
+import { EnhancedYouTubeService } from '@/services/EnhancedYouTubeService';
 import { GitCompare, ExternalLink, Trophy, TrendingUp, TrendingDown, AlertCircle, Key } from 'lucide-react';
 
 export const VideoComparison = () => {
@@ -21,7 +21,7 @@ export const VideoComparison = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const savedApiKey = YouTubeService.getApiKey();
+    const savedApiKey = EnhancedYouTubeService.getApiKey();
     setHasApiKey(!!savedApiKey);
   }, []);
 
@@ -35,7 +35,7 @@ export const VideoComparison = () => {
       return;
     }
 
-    YouTubeService.saveApiKey(apiKey.trim());
+    EnhancedYouTubeService.saveApiKey(apiKey.trim());
     setHasApiKey(true);
     setShowApiKeyInput(false);
     toast({
