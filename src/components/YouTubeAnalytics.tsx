@@ -7,6 +7,9 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EnhancedYouTubeService } from "@/services/EnhancedYouTubeService";
+import VideoSummaryAnalyzer from "./VideoSummaryAnalyzer";
+import TaskManager from "./TaskManager";
+import AIChatbot from "./AIChatbot";
 import { 
   Youtube, 
   ThumbsUp, 
@@ -20,7 +23,10 @@ import {
   Shield,
   BarChart3,
   ExternalLink,
-  Key
+  Key,
+  Brain,
+  Calendar,
+  Bot
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -275,9 +281,12 @@ const YouTubeAnalytics = () => {
 
           {/* Detailed Analysis */}
           <Tabs defaultValue="comments" className="space-y-4">
-            <TabsList className="grid grid-cols-2 w-full max-w-md">
-              <TabsTrigger value="comments">Comments Analysis</TabsTrigger>
+            <TabsList className="grid grid-cols-5 w-full">
+              <TabsTrigger value="comments">Comments</TabsTrigger>
               <TabsTrigger value="insights">Insights</TabsTrigger>
+              <TabsTrigger value="summary">AI Summary</TabsTrigger>
+              <TabsTrigger value="tasks">Tasks</TabsTrigger>
+              <TabsTrigger value="chat">AI Chat</TabsTrigger>
             </TabsList>
             
             <TabsContent value="comments" className="space-y-4">
@@ -402,6 +411,18 @@ const YouTubeAnalytics = () => {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+            
+            <TabsContent value="summary">
+              <VideoSummaryAnalyzer videoData={analytics?.video} />
+            </TabsContent>
+            
+            <TabsContent value="tasks">
+              <TaskManager />
+            </TabsContent>
+            
+            <TabsContent value="chat">
+              <AIChatbot />
             </TabsContent>
           </Tabs>
         </div>
